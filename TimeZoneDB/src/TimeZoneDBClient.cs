@@ -60,12 +60,29 @@ public class TimeZoneDBClient
     }
     
     /// <summary>
+    /// Initializes a new instance of the <see cref="TimeZoneDBClient"/> class.
+    /// </summary>
+    /// <param name="apiKey">The API key to use for the client.</param>
+    /// <param name="httpClient">The HTTP client to use for the client.</param>
+    /// <exception cref="ArgumentException">Thrown when the API key is null or whitespace.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when the HTTP client is null.</exception>
+    public TimeZoneDBClient(string apiKey, HttpClient httpClient)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(apiKey);
+        ArgumentNullException.ThrowIfNull(httpClient);
+        
+        _apiKey = apiKey;
+        _httpClient = httpClient;
+    }
+    
+    /// <summary>
     /// Gets the time zone for a given coordinate.
     /// </summary>
     /// <param name="request">The request to get the time zone for a given coordinate.</param>
+    /// <param name="cancellationToken">The cancellation token to use for the request.</param>
     /// <returns>The time zone for the given coordinate.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the response is null.</exception>
-    public async Task<GetTimeZoneResponse> GetTimeZone(GetTimeZoneByCoordinateRequest request)
+    public async Task<GetTimeZoneResponse> GetTimeZone(GetTimeZoneByCoordinateRequest request, CancellationToken cancellationToken = default)
     {
         var builder = new UriBuilder(BaseUrl)
         {
@@ -73,7 +90,7 @@ public class TimeZoneDBClient
             Query = $"key={_apiKey}&format={Format}&by=position&lat={request.Latitude}&lng={request.Longitude}"
         };
         var url = builder.ToString();
-        var response = await _httpClient.GetAsync(url);
+        var response = await _httpClient.GetAsync(url, cancellationToken);
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
         var timeZoneResponseDto = JsonSerializer.Deserialize<GetTimeZoneResponseDto>(content, _jsonSerializerOptions);
@@ -86,8 +103,9 @@ public class TimeZoneDBClient
     /// Gets the time zone for a given city.
     /// </summary>
     /// <param name="request">The request to get the time zone for a given city.</param>
+    /// <param name="cancellationToken">The cancellation token to use for the request.</param>
     /// <returns>The time zone for the given city.</returns>
-    public async Task<GetTimeZoneResponse> GetTimeZone(GetTimeZoneByCityRequest request)
+    public async Task<GetTimeZoneResponse> GetTimeZone(GetTimeZoneByCityRequest request, CancellationToken cancellationToken = default)
     {
         var builder = new UriBuilder(BaseUrl)
         {
@@ -96,7 +114,7 @@ public class TimeZoneDBClient
                     (!string.IsNullOrWhiteSpace(request.Region) ? $"&region={Uri.EscapeDataString(request.Region)}" : string.Empty)
         };
         var url = builder.ToString();
-        var response = await _httpClient.GetAsync(url);
+        var response = await _httpClient.GetAsync(url, cancellationToken);
         response.EnsureSuccessStatusCode();
         var content = await response.Content.ReadAsStringAsync();
         var timeZoneResponseDto = JsonSerializer.Deserialize<GetTimeZoneResponseDto>(content, _jsonSerializerOptions);
