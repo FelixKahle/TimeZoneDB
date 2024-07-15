@@ -40,13 +40,25 @@ public static class GetTimeZoneResponseExtensions
             {
                 var cultureInfo = CultureInfo.InvariantCulture;
                 
-                var timeZone = TimeZoneInfo.FindSystemTimeZoneById(dto.ZoneName ?? throw new InvalidOperationException());
-                var zoneStart = DateTimeOffset.FromUnixTimeSeconds(long.Parse(dto.ZoneStart ?? throw new InvalidOperationException(), cultureInfo));
-                var zoneEnd = DateTimeOffset.FromUnixTimeSeconds(long.Parse(dto.ZoneEnd ?? throw new InvalidOperationException(), cultureInfo));
-                var timeStamp = DateTimeOffset.FromUnixTimeSeconds(long.Parse(dto.Timestamp ?? throw new InvalidOperationException(), cultureInfo));
-                var gmtOffset = TimeSpan.Parse(dto.GmtOffset ?? throw new InvalidOperationException(), cultureInfo);
-                var dst = (dto.Dst ?? throw new InvalidOperationException()) == "1";
-
+                var timeZone = string.IsNullOrWhiteSpace(dto.ZoneName) ? null : TimeZoneInfo.FindSystemTimeZoneById(dto.ZoneName);
+                TimeSpan? gmtOffset = string.IsNullOrWhiteSpace(dto.GmtOffset) ? null : TimeSpan.Parse(dto.GmtOffset, cultureInfo);
+                bool? dst = string.IsNullOrWhiteSpace(dto.Dst) ? null : dto.Dst == "1";
+                DateTime? zoneStart = string.IsNullOrWhiteSpace(dto.ZoneStart)
+                    ? null
+                    : DateTimeOffset.FromUnixTimeSeconds(long.Parse(dto.ZoneStart, cultureInfo)).DateTime;
+                DateTime? zoneEnd = string.IsNullOrWhiteSpace(dto.ZoneEnd)
+                    ? null
+                    : DateTimeOffset.FromUnixTimeSeconds(long.Parse(dto.ZoneEnd, cultureInfo)).DateTime;
+                DateTime? time = string.IsNullOrWhiteSpace(dto.Formatted)
+                    ? null
+                    : DateTime.Parse(dto.Formatted, cultureInfo);
+                int? currentPage = string.IsNullOrWhiteSpace(dto.CurrentPage)
+                    ? null
+                    : int.Parse(dto.CurrentPage, cultureInfo);
+                int? totalPage = string.IsNullOrWhiteSpace(dto.TotalPage)
+                    ? null
+                    : int.Parse(dto.TotalPage, cultureInfo);
+                
                 return new GetTimeZoneResult
                 {
                     CountryCode = dto.CountryCode,
@@ -59,7 +71,10 @@ public static class GetTimeZoneResponseExtensions
                     Dst = dst,
                     ZoneStart = zoneStart,
                     ZoneEnd = zoneEnd,
-                    Timestamp = timeStamp.DateTime // TODO: Check if this is correct
+                    NextAbbreviation = dto.NextAbbreviation,
+                    Timestamp = time,
+                    CurrentPage = currentPage,
+                    TotalPage = totalPage
                 };
             })(),
             _ => null
@@ -69,7 +84,7 @@ public static class GetTimeZoneResponseExtensions
         return new GetTimeZoneResponse
         {
             Status = responseStatus,
-            ErrorMessage = dto.ErrorMessage,
+            ErrorMessage = string.IsNullOrWhiteSpace(dto.ErrorMessage) ? null : dto.ErrorMessage,
             Result = result
         };
     }

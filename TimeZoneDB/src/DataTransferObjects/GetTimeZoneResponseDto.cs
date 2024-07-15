@@ -48,6 +48,11 @@ public record GetTimeZoneResponseDto
     public string? Abbreviation { get; init; }
     
     /// <summary>
+    /// The next time zone abbreviation.
+    /// </summary>
+    public string? NextAbbreviation { get; init; }
+    
+    /// <summary>
     /// The time offset in seconds based on UTC time.
     /// </summary>
     public string? GmtOffset { get; init; }

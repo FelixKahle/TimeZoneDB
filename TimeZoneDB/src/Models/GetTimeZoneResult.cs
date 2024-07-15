@@ -38,6 +38,11 @@ public class GetTimeZoneResult
     public string? Abbreviation { get; init; }
     
     /// <summary>
+    /// The next time zone abbreviation.
+    /// </summary>
+    public string? NextAbbreviation { get; init; }
+    
+    /// <summary>
     /// The time offset based on UTC time.
     /// </summary>
     public TimeSpan? GmtOffset { get; init; }
@@ -50,30 +55,25 @@ public class GetTimeZoneResult
     /// <summary>
     /// The Unix time in UTC when current time zone start.
     /// </summary>
-    public DateTimeOffset? ZoneStart { get; init; }
+    public DateTime? ZoneStart { get; init; }
     
     /// <summary>
     /// The Unix time in UTC when current time zone end.
     /// </summary>
-    public DateTimeOffset? ZoneEnd { get; init; }
+    public DateTime? ZoneEnd { get; init; }
     
     /// <summary>
-    /// Current local time in Unix time. Minus the value with gmtOffset to get UTC time.
+    /// Current time in the time zone.
     /// </summary>
     public DateTime? Timestamp { get; init; }
     
     /// <summary>
-    /// Formatted timestamp in Y-m-d h:i:s format. E.g.: 2024-07-15 10:16:18
-    /// </summary>
-    public string? Formatted { get; init; }
-    
-    /// <summary>
     /// The total page of result when exceed 25 records.
     /// </summary>
-    public string? TotalPage { get; init; }
+    public int? TotalPage { get; init; }
     
     /// <summary>
     /// Current page when navigating.
     /// </summary>
-    public string? CurrentPage { get; init; }
+    public int? CurrentPage { get; init; }
 }
