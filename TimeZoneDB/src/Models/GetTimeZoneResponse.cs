@@ -3,7 +3,8 @@
 namespace TimeZoneDB.Models;
 
 /// <summary>
-/// The status of the API query.
+/// The status of the API query,
+/// indicating whether the query was successful or not.
 /// </summary>
 public enum GetTimeZoneResponseStatus
 {
