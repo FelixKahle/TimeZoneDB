@@ -13,9 +13,6 @@ public static class GetTimeZoneResponseExtensions
     /// </summary>
     /// <param name="dto">The data transfer object to convert.</param>
     /// <returns>The converted model.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the status is null or invalid.</exception>
-    /// <exception cref="TimeZoneNotFoundException">Thrown when the time zone is not found.</exception>
-    /// <exception cref="FormatException">Thrown when the time offset is not a valid time span.</exception>
     public static GetTimeZoneResponse ToModel(this GetTimeZoneResponseDto dto)
     {
         // First we need to check if the status is null. If it is, we throw an exception,
@@ -39,17 +36,32 @@ public static class GetTimeZoneResponseExtensions
         // and that TimeSpan.Parse will throw an exception if the string is not a valid time span.
         var result = responseStatus switch
         {
-            GetTimeZoneResponseStatus.Ok => new GetTimeZoneResult
+            GetTimeZoneResponseStatus.Ok => new Func<GetTimeZoneResult>(() =>
             {
-                CountryCode = dto.CountryCode,
-                CountryName = dto.CountryName,
-                RegionName = dto.RegionName,
-                CityName = dto.CityName,
-                TimeZone = TimeZoneInfo.FindSystemTimeZoneById(dto.ZoneName ?? string.Empty),
-                Abbreviation = dto.Abbreviation ?? string.Empty,
-                GmtOffset = TimeSpan.Parse(dto.GmtOffset ?? string.Empty, CultureInfo.InvariantCulture),
-                Dst = dto.Dst == "1"
-            },
+                var cultureInfo = CultureInfo.InvariantCulture;
+                
+                var timeZone = TimeZoneInfo.FindSystemTimeZoneById(dto.ZoneName ?? throw new InvalidOperationException());
+                var zoneStart = DateTimeOffset.FromUnixTimeSeconds(long.Parse(dto.ZoneStart ?? throw new InvalidOperationException(), cultureInfo));
+                var zoneEnd = DateTimeOffset.FromUnixTimeSeconds(long.Parse(dto.ZoneEnd ?? throw new InvalidOperationException(), cultureInfo));
+                var timeStamp = DateTimeOffset.FromUnixTimeSeconds(long.Parse(dto.Timestamp ?? throw new InvalidOperationException(), cultureInfo));
+                var gmtOffset = TimeSpan.Parse(dto.GmtOffset ?? throw new InvalidOperationException(), cultureInfo);
+                var dst = (dto.Dst ?? throw new InvalidOperationException()) == "1";
+
+                return new GetTimeZoneResult
+                {
+                    CountryCode = dto.CountryCode,
+                    CountryName = dto.CountryName,
+                    RegionName = dto.RegionName,
+                    CityName = dto.CityName,
+                    TimeZone = timeZone,
+                    Abbreviation = dto.Abbreviation,
+                    GmtOffset = gmtOffset,
+                    Dst = dst,
+                    ZoneStart = zoneStart,
+                    ZoneEnd = zoneEnd,
+                    Timestamp = timeStamp.DateTime // TODO: Check if this is correct
+                };
+            })(),
             _ => null
         };
 
